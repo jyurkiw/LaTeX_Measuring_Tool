@@ -1,0 +1,79 @@
+% Default preamble for latex_measure: the standard Enigma Narrative dndbook preamble.
+% A copy of PREAMBLE in enigma-narrative/compiler/encompile/supplement.py (as of
+% 2026-11-08), without the generated-file header, \title and \date, and with
+% \graphicspath set to the current folder. Keep it in step with the compiler: any
+% difference can change measured heights (the ability-score block below is worth a
+% line on some stat blocks).
+% Pass your own with --preamble / LatexMeasurer(preamble=...) if your document differs.
+% Everything up to (but not including) the start of the document body.
+\documentclass[10pt,twoside,twocolumn,openany,nodeprecatedcode]{dndbook}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[singlelinecheck=false]{caption}
+\usepackage{stfloats}
+\usepackage{tikz}
+\usepackage{url}
+\usepackage{balance}       % <pageEnd>: even out the columns of the page being ended
+
+\captionsetup[table]{labelformat=empty,font={sf,sc,bf,},skip=0pt}
+\graphicspath{{./}}
+
+% book.cls \frontmatter and \mainmatter always \cleardoublepage; use \clearpage.
+\makeatletter
+\renewcommand\frontmatter{\clearpage\@mainmatterfalse\pagenumbering{roman}}
+\renewcommand\mainmatter{\clearpage\@mainmattertrue\pagenumbering{arabic}}
+\makeatother
+
+% Tables and stat blocks can't break across columns; leave the gap at the foot.
+\raggedbottom
+
+% ---- 2024 stat block wording
+\renewcommand\armorclassname{AC}
+\renewcommand\hitpointsname{HP}
+\renewcommand\challengename{CR}
+\renewcommand\dimmname{Immunities}
+\newcommand{\MonAttack}[2]{\textit{#1 Attack Roll:} #2}
+\newcommand{\MonHit}{\textit{Hit:}}
+\newcommand{\MonSave}[2]{\textit{#1 Saving Throw:} #2}
+\newcommand{\MonFailure}{\textit{Failure:}}
+\newcommand{\MonSuccess}{\textit{Success:}}
+
+% ---- Ability scores: the modifier always goes under the score. dndbook leaves it to the
+% column width, so a one-digit score ("9 (-1)") kept its modifier on the same line.
+\ExplSyntaxOn
+\cs_if_exist:NT \__dnd_ability_score_modifier:N
+  {
+    \cs_set_protected_nopar:Npn \__dnd_ability_score_modifier:N #1
+      {
+        \regex_match:nnTF { \A \d+ \Z } {#1}
+          {
+            \int_set:Nn \l_tmpa_int { \fp_eval:n { floor ( ( #1 - 10 ) / 2 ) } }
+            #1 \newline ( \int_compare:nNnTF { \l_tmpa_int } < { 0 } { -- } { + } \int_abs:n { \l_tmpa_int } )
+          }
+          {#1}
+      }
+  }
+\ExplSyntaxOff
+
+% ---- House style (one place to change it)
+\colorlet{itemdividercolor}{titlegold}    % the rule under a magic item's header line
+\colorlet{actioncolor}{titlered}          % action terms: "Magic action", "Bonus Action"
+\NewDocumentCommand{\DndMagicItem}{m m}{%
+  \DndItemHeader{#1}{#2}%
+  {\color{itemdividercolor}\rule[0.6ex]{\linewidth}{0.8pt}}\par\noindent\ignorespaces}
+\newcommand{\DndItemAbility}[1]{\textbf{#1.}}
+\newcommand{\DndActionTerm}[1]{\textbf{\textcolor{actioncolor}{#1}}}
+\newcommand{\DndCreature}[1]{\textbf{#1}}
+\newcommand{\DndNoun}[1]{\textbf{#1}}            % people, places and things with no stats (nounRef)
+\newenvironment{DndItemIndent}{\begin{list}{}{\leftmargin=1em\rightmargin=0pt\topsep=2pt\partopsep=0pt\parsep=4pt\itemsep=0pt}\item\relax}{\end{list}}
+
+% ---- A table column that wraps at a fixed width (DndTable takes single letters)
+\newcolumntype{P}{>{\raggedright\arraybackslash}p{0.36\linewidth}}
+
+% ---- NPC dialogue: a read-aloud box in light blue; speaker bold, line italic
+\definecolor{dialoguecolor}{HTML}{DCE9F5}
+\newenvironment{DndDialogue}
+  {\begin{DndReadAloud}[color=dialoguecolor]\setlength{\parskip}{4pt}}
+  {\end{DndReadAloud}}
+\newcommand{\DndSays}[2]{\par\noindent\textbf{#1:} \textit{``#2''}\par}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "latex-measure"
+version = "0.1.0"
+description = "Measure the exact typeset size of LaTeX snippets under a document's real preamble (built for the dndbook class)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []          # standard library only; needs a TeX engine (pdflatex) on PATH
+authors = [{ name = "Enigma Narrative" }]
+keywords = ["latex", "tex", "layout", "typesetting", "dndbook"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Text Processing :: Markup :: LaTeX",
+]
+
+[project.scripts]
+latex-measure = "latex_measure.core:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["latex_measure"]           # preamble.tex inside it ships with the package
+
+[tool.hatch.build.targets.sdist]
+include = ["latex_measure", "README.md", "DESIGN.md", "pyproject.toml"]
